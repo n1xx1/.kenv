@@ -1,21 +1,31 @@
 // Name: Text Transformer
 
 import "@johnlindquist/kit";
+import { sortBy } from "remeda";
+
+const scriptDb = await db<{ lastUsed: Transformer[] }>({ lastUsed: [] });
 
 async function main() {
-  const transformerKey = await arg<keyof typeof transformers>(
-    "Select a transformation",
-    [
-      { name: "lowercase", value: "lowerCase" },
-      { name: "UPPERCASE", value: "upperCase" },
-      { name: "camelCase", value: "camelCase" },
-      { name: "snake_case", value: "snakeCase" },
-      { name: "Upper Camel Case With Space", value: "camelSpaceCase" },
-      { name: "kebab-case", value: "kebabCase" },
-      { name: "PascalCase", value: "pascalCase" },
-      { name: "rEVERSEcASE", value: "reverseCase" },
-    ]
-  );
+  let args: { name: string; value: Transformer }[] = [
+    { name: "lowercase", value: "lowerCase" },
+    { name: "UPPERCASE", value: "upperCase" },
+    { name: "camelCase", value: "camelCase" },
+    { name: "snake_case", value: "snakeCase" },
+    { name: "Upper Camel Case With Space", value: "camelSpaceCase" },
+    { name: "kebab-case", value: "kebabCase" },
+    { name: "PascalCase", value: "pascalCase" },
+    { name: "rEVERSEcASE", value: "reverseCase" },
+  ];
+
+  args = sortBy(args, [
+    (a) => {
+      const index = scriptDb.lastUsed.indexOf(a.value);
+      return index < 0 ? Infinity : index;
+    },
+    "asc",
+  ]);
+
+  const transformerKey = await arg("Select a transformation", args);
 
   await keyboard.config({ autoDelayMs: 0.1 });
   await replaceText((contents) => {
@@ -26,6 +36,12 @@ async function main() {
     }
     return lines.join("");
   });
+
+  scriptDb.lastUsed = [
+    transformerKey,
+    ...scriptDb.lastUsed.filter((x) => x !== transformerKey),
+  ];
+  await scriptDb.write();
 }
 
 async function withRestoreHistory(fn: () => Promise<void>) {
@@ -61,6 +77,8 @@ function getStringArray(text: string): string[] {
   const textGroupsMatcher = /([^\s\-_A-Z]+)|([A-Z]+[^\s\-_A-Z]*)/g;
   return text.match(textGroupsMatcher) || [];
 }
+
+type Transformer = keyof typeof transformers;
 
 const transformers = {
   kebabCase: (input: string): string => {

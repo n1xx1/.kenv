@@ -3,6 +3,7 @@
   "devDependencies": {
     "@johnlindquist/kit": "file:../.kit",
     "get-app-icon": "^1.0.1",
+    "remeda": "^2.17.4",
     "vban": "^1.2.5"
   },
   "engines": {
