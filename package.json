@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@johnlindquist/kit": "file:../.kit",
+    "get-app-icon": "^1.0.1",
+    "vban": "^1.2.5"
+  },
+  "engines": {
+    "node": "18.18.2",
+    "npm": "9.8.1"
+  }
+}
